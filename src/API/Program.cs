@@ -1,9 +1,13 @@
 using API.Configurations;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Infrastructure;
 using Infrastructure.Common;
+using MassTransit.Logging;
+using MassTransit.Monitoring;
+using OpenTelemetry.Resources;
 using Serilog;
 using System.Text.Json.Serialization;
-using MediatR;
 
 StaticLogger.EnsureLoggerIsInitialized();
 Log.Information("Starting Web API...");
@@ -12,6 +16,43 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Host.AddConfigurations();
+
+// Add OpenTelemetry
+
+var connectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+
+// Build a resource configuration action to set service information.
+Action<ResourceBuilder> configureResourceOpenTelemetry = r => r.AddService(
+    serviceName: typeof(Program).Assembly.GetName().Name ?? "API",
+    serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
+    serviceInstanceId: Environment.MachineName);
+
+builder.Services
+    .AddOpenTelemetry()
+    .ConfigureResource(configureResourceOpenTelemetry)
+    .WithTracing(config =>
+    {
+        config.AddSource(DiagnosticHeaders.DefaultListenerName);
+        config.AddAzureMonitorTraceExporter(o =>
+        {
+            o.ConnectionString = connectionString;
+        });
+    })
+    .WithMetrics(config => {
+
+        config.AddMeter(InstrumentationOptions.MeterName);
+        config.AddAzureMonitorMetricExporter(o =>
+        {
+            o.ConnectionString = connectionString;
+        });
+    })
+    .UseAzureMonitor(options => {
+        options.ConnectionString = connectionString;
+    });
+
+//builder.AddOpenTelemetryOptionA();
+//builder.AddOpenTelemetryOptionB();
+
 
 // Add controllers with some extra options
 builder.Services.AddControllers().AddJsonOptions(x =>

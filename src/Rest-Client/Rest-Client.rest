@@ -1,0 +1,27 @@
+
+### List
+GET https://localhost:7198/api/Category/get HTTP/1.1
+content-type: application/json
+
+
+### Create
+POST https://localhost:7198/api/Category/add HTTP/1.1
+content-type: application/json
+
+{
+  "name": "a{{$guid}}",
+  "description": "string"
+}
+
+
+### Create
+POST https://localhost:7198/api/Product/add HTTP/1.1
+content-type: application/json
+
+{
+  "name": "a{{$guid}}",
+  "description": "string",
+  "price": 0,
+  "stock": 0,
+  "categoryId": "843e10a5-0531-43ff-aed5-1987dbb73134"
+}
