@@ -16,7 +16,7 @@
         /// Primary Connection String for Azure Service Bus.<br />
         /// This can be achieved from the service bus IAM in the Azure Portal.
         /// </summary>
-        public string ConnectionString { get; set; } 
+        public string? ConnectionString { get; set; } 
     }
 
     internal class RabbitmqSettings

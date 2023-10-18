@@ -148,7 +148,7 @@ namespace Infrastructure.Services.Categories
         /// <exception cref="KeyNotFoundException">Thrown if the category wasn't found in the database</exception>
         private async Task<Category> getCategoryByIdAsync(Guid id, CancellationToken ct)
         {
-            Category category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, cancellationToken: ct);
+            Category? category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, cancellationToken: ct);
             if (category == null) throw new KeyNotFoundException("The category was not found in the database.");
             return category;
         }
@@ -161,7 +161,7 @@ namespace Infrastructure.Services.Categories
         /// <exception cref="KeyNotFoundException">Thrown if the category wasn't found in the database</exception>
         private async Task<Category> getCategoryByNameAsync(string name, CancellationToken ct)
         {
-            Category category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Name == name, cancellationToken: ct);
+            Category? category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(x => x.Name == name, cancellationToken: ct);
             if (category == null) throw new KeyNotFoundException("The category was not found in the database.");
             return category;
         }

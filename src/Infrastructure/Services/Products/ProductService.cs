@@ -190,7 +190,7 @@ namespace Infrastructure.Services.Products
         /// <exception cref="KeyNotFoundException">Thrown if no product in the database has the given ID</exception>
         private async Task<Product> getProductByIdAsync(Guid id, CancellationToken ct)
         {
-            Product product = await _db.Products.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
+            Product? product = await _db.Products.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
             if (product == null) throw new KeyNotFoundException($"The product with ID: {id} was not found in the database.");
             return product;
         }
@@ -204,7 +204,7 @@ namespace Infrastructure.Services.Products
         /// <exception cref="KeyNotFoundException">Thrown if the product wasn't found in the database</exception>
         private async Task<Product> getProductByNameAsync(string name, CancellationToken ct)
         {
-            Product product = await _db.Products.AsNoTracking().FirstOrDefaultAsync(x => x.Name == name, ct);
+            Product? product = await _db.Products.AsNoTracking().FirstOrDefaultAsync(x => x.Name == name, ct);
             if (product == null) throw new KeyNotFoundException($"The product with name: {name} was not found in the database.");
             return product;
         }

@@ -91,7 +91,7 @@ namespace Infrastructure.Services.Events
 
             services.AddMassTransit(config =>
             {
-                config.AddConsumer<ProductCreatedConsumer>();
+                //config.AddConsumer<ProductCreatedConsumer>();
 
                 config.UsingRabbitMq((ctx, cfg) =>
                 {
@@ -103,10 +103,10 @@ namespace Infrastructure.Services.Events
 
                     // Set up receiver endpoint for the ProductCreated event
                     // using the contancts from the messagebus library
-                    cfg.ReceiveEndpoint(EventBusConstants.ProductCreatedQueue, c =>
-                    {
-                        c.ConfigureConsumer<ProductCreatedConsumer>(ctx);
-                    });
+                    //cfg.ReceiveEndpoint(EventBusConstants.ProductCreatedQueue, c =>
+                    //{
+                    //    c.ConfigureConsumer<ProductCreatedConsumer>(ctx);
+                    //});
 
                     // Add all consumers here...
 
