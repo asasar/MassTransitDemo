@@ -98,3 +98,6 @@ app.MapControllers();
 // All done - let's run the app / API
 Log.Information("The Web API is now ready to accept incoming requests!");
 app.Run();
+
+
+// https://tech.playgokids.com/open-telemetry-azure-monitor-trace-exporter/

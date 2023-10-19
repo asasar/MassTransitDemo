@@ -15,45 +15,36 @@ var builder = Host
 {
     var env = hostingContext.HostingEnvironment;
     configBuilder
-      .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true)
-      .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
-      ;
+      .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true);
 })
 .ConfigureServices((appBuilder, services) =>
 {
     var configuration = appBuilder.Configuration;
     var connectionString = configuration["ApplicationInsights:ConnectionString"];
 
-    services.AddOpenTelemetry()
-
-        .WithTracing(config =>
-        {
-            config.SetResourceBuilder(
-                ResourceBuilder.CreateDefault()
-                .AddService(
+    var openTelemetryResourceBuilder = ResourceBuilder.CreateDefault().AddService(
                     serviceName: typeof(Program).Assembly.GetName().Name ?? "API",
                     serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
-                    serviceInstanceId: Environment.MachineName)
-                );
+                    serviceInstanceId: Environment.MachineName);
+
+    services.AddOpenTelemetry()
+        .WithTracing(config =>
+        {
+            config.SetResourceBuilder(openTelemetryResourceBuilder);
             config.AddAspNetCoreInstrumentation();
             config.AddHttpClientInstrumentation();
+            config.AddConsoleExporter();
             config.AddAzureMonitorTraceExporter(o =>
             {
                 o.ConnectionString = connectionString;
             });
         })
         .WithMetrics(config => {
-            config.SetResourceBuilder(
-                ResourceBuilder.CreateDefault()
-                .AddService(
-                    serviceName: typeof(Program).Assembly.GetName().Name ?? "API",
-                    serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
-                    serviceInstanceId: Environment.MachineName)
-                );
-
+            config.SetResourceBuilder(openTelemetryResourceBuilder);
             config.AddRuntimeInstrumentation();
             config.AddAspNetCoreInstrumentation();
             config.AddHttpClientInstrumentation();
+            config.AddConsoleExporter();
             config.AddAzureMonitorMetricExporter(o =>
             {
                 o.ConnectionString = connectionString;
