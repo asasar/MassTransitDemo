@@ -3,7 +3,7 @@
     /// <summary>
     /// Event class to hold values for a newly created product in the API
     /// </summary>
-    public class ProductCreatedEvent : IntegrationBaseEvent
+    public class ProductCreatedEvent
     {
         /// <summary>
         /// Product Name
@@ -24,5 +24,25 @@
         /// Amount of products in stock
         /// </summary>
         public int Stock { get; set; }
+
+
+        /// <summary>
+        /// Constructor to generate a new id and set the creation date
+        /// </summary>
+        public ProductCreatedEvent()
+        {
+            Id = Guid.NewGuid();
+            CreationDate = DateTime.Now;
+        }
+
+        /// <summary>
+        /// Event ID
+        /// </summary>
+        public Guid Id { get; private set; }
+
+        /// <summary>
+        /// Event Creation Date
+        /// </summary>
+        public DateTime CreationDate { get; private set; }
     }
 }

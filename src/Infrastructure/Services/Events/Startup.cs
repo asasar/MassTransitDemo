@@ -1,7 +1,9 @@
 ﻿using Infrastructure.Services.Events.Consumers;
 using Infrastructure.Settings;
 using MassTransit;
+using MassTransit.Transports;
 using MessageBus.Common;
+using MessageBus.Messages.Products;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -56,16 +58,14 @@ namespace Infrastructure.Services.Events
 
             services.AddMassTransit(config =>
             {
-                config.AddConsumer<ProductCreatedConsumer>();
-
+                config.SetKebabCaseEndpointNameFormatter();
+                //config.AddConsumer<ProductCreatedConsumer>();
                 config.UsingAzureServiceBus((ctx, cfg) =>
                 {
-                    cfg.Host(settings.AzureServiceBusSettings.ConnectionString ?? throw new NullReferenceException("The connection string for Azure Service Bus has not been configured."));
+                    cfg.UseMessageRetry(retry => retry.Interval(3, TimeSpan.FromSeconds(5)));
 
-                    cfg.ReceiveEndpoint(EventBusConstants.ProductCreatedQueue, consumer =>
-                    {
-                        consumer.ConfigureConsumer<ProductCreatedConsumer>(ctx);
-                    });
+                    cfg.Host(settings.AzureServiceBusSettings.ConnectionString ?? throw new NullReferenceException("The connection string for Azure Service Bus has not been configured."));
+                    cfg.Message<ProductCreatedEvent>(m => m.SetEntityName(EventBusConstants.ProductCreatedQueue));
 
                     // Add all consumers here...
                 });
@@ -91,7 +91,7 @@ namespace Infrastructure.Services.Events
 
             services.AddMassTransit(config =>
             {
-                //config.AddConsumer<ProductCreatedConsumer>();
+                config.AddConsumer<ProductCreatedConsumer>();
 
                 config.UsingRabbitMq((ctx, cfg) =>
                 {

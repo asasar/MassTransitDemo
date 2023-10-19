@@ -5,7 +5,7 @@
     /// </summary>
     internal class EventBusSettings
     {
-        public string EventbusProvider { get; set; } = "rabbitmq";
+        public string? EventbusProvider { get; set; }
         public AzureServiceBusSettings? AzureServiceBusSettings { get; set; } = new AzureServiceBusSettings();
         public RabbitmqSettings? RabbitmqSettings { get; set;} = new RabbitmqSettings();
     }

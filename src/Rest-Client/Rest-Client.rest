@@ -23,5 +23,5 @@ content-type: application/json
   "description": "string",
   "price": 0,
   "stock": 0,
-  "categoryId": "843e10a5-0531-43ff-aed5-1987dbb73134"
+  "categoryId": "f9f0b7f1-c11d-4750-8a7a-e47c29dbc05f"
 }

@@ -1,6 +1,6 @@
 {
   "EventBusSettings": {
-    "ServiceBusProvider": "rabbitmq", // or azure
+    "EventbusProvider": "azure", // or azure
     "AzureServiceBusSettings": {
       "ConnectionString": "your-connection-string-here"
     },

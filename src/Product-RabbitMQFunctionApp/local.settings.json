@@ -1,0 +1,8 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "ServiceBusConnection": "Endpoint=sb://asrtestingsbdev02.servicebus.windows.net/;SharedAccessKeyName=read-product-created-queue;SharedAccessKey=g22nSj2cMlcmGjJAYkdt3Xbf2+TPjmLob+ASbNevVzY=;EntityPath=product-created-queue"
+  }
+}
