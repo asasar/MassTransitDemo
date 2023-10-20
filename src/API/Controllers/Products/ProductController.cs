@@ -5,6 +5,8 @@ using Domain.Entitites.Products;
 using DTO.Products;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using OpenTelemetry.Context.Propagation;
+using System.Diagnostics;
 
 namespace API.Controllers.Products
 {
@@ -13,11 +15,16 @@ namespace API.Controllers.Products
     public class ProductController : ControllerBase
     {
         private readonly IMapper _mapper;
+        private readonly ILogger<ProductController> _logger;
         private readonly IMediator _mediator;
+        private static readonly ActivitySource Activity = new(nameof(ProductController));
+        private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
-        public ProductController(IMapper mapper, IMediator mediator)
+        public ProductController(IMapper mapper, ILogger<ProductController> logger,
+            IMediator mediator)
         {
             _mapper = mapper;
+            _logger = logger;
             _mediator = mediator;
         }
 
@@ -52,6 +59,7 @@ namespace API.Controllers.Products
         [HttpGet("get/category/{id}")]
         public async Task<IActionResult> GetProductByCategoryAsync(Guid id, CancellationToken ct)
         {
+
             // Get all products within a specific category
             List<Product> products = await _mediator.Send(new GetProductsByCategoryQuery(id), ct);
 
@@ -66,17 +74,21 @@ namespace API.Controllers.Products
         [HttpPost("add")]
         public async Task<IActionResult> AddProductAsync(ProductCreateRequestDto productToCreate, CancellationToken ct)
         {
-            // Map DTO to domain model
-            Product product = _mapper.Map<Product>(productToCreate);
+            using (var activity = Activity.StartActivity("Service Bus Publish"))
+            {
+                // Map DTO to domain model
+                Product product = _mapper.Map<Product>(productToCreate);
 
-            // Add/Create product in database
-            product = await _mediator.Send(new AddProductCommand(product), ct);
 
-            // Map Created product to DTO
-            ProductResponseDto mappedProduct = _mapper.Map<ProductResponseDto>(product);
+                // Add/Create product in database
+                product = await _mediator.Send(new AddProductCommand(product), ct);
 
-            // Return mapped created product
-            return Ok(mappedProduct);
+                // Map Created product to DTO
+                ProductResponseDto mappedProduct = _mapper.Map<ProductResponseDto>(product);
+
+                // Return mapped created product
+                return Ok(mappedProduct);
+            }
         }
 
         // PUT: api/Product/update
@@ -104,5 +116,7 @@ namespace API.Controllers.Products
 
             return Ok("Product has successfully been removed from the database.");
         }
+
+
     }
 }

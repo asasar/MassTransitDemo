@@ -1,5 +1,3 @@
-using Azure.Monitor.OpenTelemetry.AspNetCore;
-using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,7 +8,10 @@ using OpenTelemetry.Trace;
 
 var builder = Host
 .CreateDefaultBuilder(args)
-.ConfigureFunctionsWorkerDefaults()
+.ConfigureFunctionsWorkerDefaults(app =>
+{
+    app.AddOpenTelemetry();
+})
 .ConfigureAppConfiguration((hostingContext, configBuilder) =>
 {
     var env = hostingContext.HostingEnvironment;
@@ -22,37 +23,14 @@ var builder = Host
     var configuration = appBuilder.Configuration;
     var connectionString = configuration["ApplicationInsights:ConnectionString"];
 
-    var openTelemetryResourceBuilder = ResourceBuilder.CreateDefault().AddService(
-                    serviceName: typeof(Program).Assembly.GetName().Name ?? "API",
-                    serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
-                    serviceInstanceId: Environment.MachineName);
-
     services.AddOpenTelemetry()
-        .WithTracing(config =>
-        {
-            config.SetResourceBuilder(openTelemetryResourceBuilder);
-            config.AddAspNetCoreInstrumentation();
-            config.AddHttpClientInstrumentation();
-            config.AddConsoleExporter();
-            config.AddAzureMonitorTraceExporter(o =>
-            {
-                o.ConnectionString = connectionString;
-            });
-        })
-        .WithMetrics(config => {
-            config.SetResourceBuilder(openTelemetryResourceBuilder);
-            config.AddRuntimeInstrumentation();
-            config.AddAspNetCoreInstrumentation();
-            config.AddHttpClientInstrumentation();
-            config.AddConsoleExporter();
-            config.AddAzureMonitorMetricExporter(o =>
-            {
-                o.ConnectionString = connectionString;
-            });
-        })
-        .UseAzureMonitor(options => {
-            options.ConnectionString = connectionString;
-        });
+            .ConfigureResource(resBuilder => resBuilder.AddService("Isolated"))
+            .WithTracing(tracerBuilder => tracerBuilder
+                .AddSource(ActivityTrackingMiddleware.Source.Name)
+                .SetSampler(new AlwaysOnSampler())
+                .AddOtlpExporter(opts => { opts.Endpoint = new Uri("http://localhost:4317"); })
+            );
+
 });
 
 await builder.Build().RunAsync();

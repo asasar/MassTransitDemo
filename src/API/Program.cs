@@ -1,3 +1,4 @@
+using API;
 using API.Configurations;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Azure.Monitor.OpenTelemetry.Exporter;
@@ -5,9 +6,14 @@ using Infrastructure;
 using Infrastructure.Common;
 using MassTransit.Logging;
 using MassTransit.Monitoring;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 using System.Text.Json.Serialization;
+
+
 
 StaticLogger.EnsureLoggerIsInitialized();
 Log.Information("Starting Web API...");
@@ -21,18 +27,14 @@ builder.Host.AddConfigurations();
 
 var connectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
 
-// Build a resource configuration action to set service information.
-Action<ResourceBuilder> configureResourceOpenTelemetry = r => r.AddService(
-    serviceName: typeof(Program).Assembly.GetName().Name ?? "API",
-    serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
-    serviceInstanceId: Environment.MachineName);
 
 builder.Services
     .AddOpenTelemetry()
-    .ConfigureResource(configureResourceOpenTelemetry)
+    .ConfigureResource(resBuilder => resBuilder.AddService("Isolated"))
     .WithTracing(config =>
     {
         config.AddSource(DiagnosticHeaders.DefaultListenerName);
+        config.AddOtlpExporter(opts => { opts.Endpoint = new Uri("http://localhost:4317"); });
         config.AddAzureMonitorTraceExporter(o =>
         {
             o.ConnectionString = connectionString;
@@ -41,6 +43,7 @@ builder.Services
     .WithMetrics(config => {
 
         config.AddMeter(InstrumentationOptions.MeterName);
+        config.AddOtlpExporter(opts => { opts.Endpoint = new Uri("http://localhost:4317"); });
         config.AddAzureMonitorMetricExporter(o =>
         {
             o.ConnectionString = connectionString;
@@ -49,9 +52,6 @@ builder.Services
     .UseAzureMonitor(options => {
         options.ConnectionString = connectionString;
     });
-
-//builder.AddOpenTelemetryOptionA();
-//builder.AddOpenTelemetryOptionB();
 
 
 // Add controllers with some extra options

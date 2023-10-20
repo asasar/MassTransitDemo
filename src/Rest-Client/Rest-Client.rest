@@ -20,8 +20,8 @@ content-type: application/json
 
 {
   "name": "a{{$guid}}",
-  "description": "string",
+  "description": "alexis",
   "price": 0,
   "stock": 0,
-  "categoryId": "f9f0b7f1-c11d-4750-8a7a-e47c29dbc05f"
+  "categoryId": "f98a2b33-ed39-4194-b920-22a5bec7684f"
 }
